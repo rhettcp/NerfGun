@@ -3,7 +3,7 @@ import RPi.GPIO as GPIO
 import time
 
 current = 90
-minTrigger = 93
+minTrigger = 85
 maxTrigger = 150
 
 #Helpers
@@ -26,11 +26,11 @@ def moveNerfGun(panServo, tiltServo, x, y):
 
 def fireNerfDart(trigger):
     triggerAng = minTrigger
+    moveServo(trigger, minTrigger)
     while(triggerAng < maxTrigger):
 	moveServo(trigger, triggerAng)
 	triggerAng += 1
 	time.sleep(0.008)
-    time.sleep(2)
     while(triggerAng > minTrigger):
 	moveServo(trigger, triggerAng)
 	triggerAng -= 1
