@@ -10,7 +10,9 @@ target = (460, 236)
 
 fire_pin = 23
 motor_pin = 17
-fire_displacement = 50
+fire_displacement = 75
+
+arm_delay = 25
 
 firstFrame = None
 previousFrame = None
@@ -20,8 +22,9 @@ GPIO.setup(motor_pin, GPIO.OUT)
 
 counter = 0
 interval = 2
+printTargets = False
+
 while(True):
-    hasContour = False
     grabbed, frame = camera.read()
     if not grabbed:
         print 'exiting'
@@ -39,22 +42,26 @@ while(True):
     (contours, _) = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL,
                                      cv2.CHAIN_APPROX_SIMPLE)
     firing = False
-
-    if not contours:
-        GPIO.output(motor_pin, GPIO.LOW)
-    else:
-        GPIO.output(motor_pin, GPIO.HIGH)
+    spin_up = False
     for c in contours:
+        if cv2.contourArea(c) > 1000:
+            spin_up = True
         if cv2.contourArea(c) < 3500:
             continue
-        hasContour = True
         (x,y,w,h) = cv2.boundingRect(c)
         center = (x + w /2, y + h/4)
+        if printTargets:
+            print center
         cv2.rectangle(frame, (x,y), (x + w, y + h), (0, 255, 0), 2)
         cv2.circle(frame, center, 10, (0,0,255), thickness=2)
         difference = np.sqrt((target[0] - center[0])**2 + (target[1] - center[1])**2)
         if (difference < fire_displacement):
             firing = True
+
+    if spin_up and counter > arm_delay:
+        GPIO.output(motor_pin, GPIO.HIGH)
+    else:
+        GPIO.output(motor_pin, GPIO.LOW)
 
     if firing:
         GPIO.output(fire_pin, GPIO.HIGH)
@@ -77,6 +84,8 @@ while(True):
         break
     elif cmd == ord('k'):
         firstFrame = gray
+    elif cmd == ord('t'):
+        printTargets = not printTargets
 
     previousFrame = gray    
     counter += 1

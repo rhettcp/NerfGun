@@ -3,6 +3,9 @@ import RPi.GPIO as GPIO
 import time
 
 current = 90
+minTrigger = 60
+maxTrigger = 130
+
 
 def moveServo(servo, angle):
     duty = float(angle) / 10.0 + 2.5
@@ -10,13 +13,16 @@ def moveServo(servo, angle):
     print angle, duty
 
 def fireNerfDart(trigger):
-    triggerAng = 60
-    while(triggerAng < 130):
+    triggerAng = minTrigger
+    while(triggerAng < maxTrigger):
 	moveServo(trigger, triggerAng)
 	triggerAng += 1
 	time.sleep(0.008)
-    moveServo(trigger, 60)   
-
+    time.sleep(2)
+    while(triggerAng > minTrigger):
+	moveServo(trigger, triggerAng)
+	triggerAng -= 1
+	time.sleep(0.004)
 
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(18, GPIO.OUT)
@@ -29,7 +35,7 @@ pan.start(5)
 trigger.start(5)
 
 moveServo(pan, 90)
-moveServo(trigger, 60)
+moveServo(trigger, minTrigger)
 
 fireNerfDart(trigger)
 
