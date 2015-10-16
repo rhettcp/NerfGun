@@ -2,27 +2,37 @@ from Tkinter import *
 import RPi.GPIO as GPIO
 import time
 
+current = 90
+
+def moveServo(servo, angle):
+    duty = float(angle) / 10.0 + 2.5
+    servo.ChangeDutyCycle(duty)
+    print angle, duty
+
+def fireNerfDart(trigger):
+    triggerAng = 60
+    while(triggerAng < 130):
+	moveServo(trigger, triggerAng)
+	triggerAng += 1
+	time.sleep(0.008)
+    moveServo(trigger, 60)   
+
+
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(18, GPIO.OUT)
-pwm = GPIO.PWM(18, 100)
-pwm.start(5)
+GPIO.setup(20, GPIO.OUT)
 
-class App:
+pan = GPIO.PWM(18, 100)
+trigger = GPIO.PWM(20, 100)
 
-    def __init__(self, master):
-        frame = Frame(master)
-        frame.pack()
-        scale = Scale(frame, from_=0, to=180,
-              orient=HORIZONTAL, command=self.update)
-        scale.grid(row=0)
+pan.start(5)
+trigger.start(5)
+
+moveServo(pan, 90)
+moveServo(trigger, 60)
+
+fireNerfDart(trigger)
 
 
-    def update(self, angle):
-        duty = float(angle) / 10.0 + 2.5
-        pwm.ChangeDutyCycle(duty)
 
-root = Tk()
-root.wm_title('Servo Control')
-app = App(root)
-root.geometry("200x50+0+0")
-root.mainloop()
+
